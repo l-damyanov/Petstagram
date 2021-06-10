@@ -3,5 +3,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('petstagram.common.urls'))
+    path('', include('petstagram.common.urls')),
+    path('pets/', include('petstagram.pets.ulrs')),
 ]
