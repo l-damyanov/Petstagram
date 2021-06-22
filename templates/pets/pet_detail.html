@@ -19,9 +19,15 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav">
-                <a class="nav-link" href="#">Home</a>
+                <a class="nav-link" href="{% url 'landing page' %}">Home</a>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'list pets' %}">All Pets</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'create pet' %}">Add Pet Photo</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Sign Up</a>
@@ -41,10 +47,36 @@
                     <h5><u>Age:</u> {{ pet.age }}</h5>
                 </div>
                 <p class="mt-2">Description: {{ pet.description }}</p>
+                <div>
+                    <a href="{% url 'edit pet' pet.id %}" class="btn btn-success">Edit</a>
+                    <a href="{% url 'delete pet' pet.id %}" class="btn btn-danger">Delete</a>
+                </div>
 				<a href="{% url 'like pet' pet.id %}"><i class="fa fa-heart-o" aria-hidden="true"></i></a>
                 <p class="mt-2">Likes: {{ pet.likes_count }}</p>
             </div>
         </div>
+        <div class="d-block" style="background-color: #f1e3e3; padding:2%">
+            {% if comments %}
+                {% for comment in comments %}
+                    <div class="box">
+                        <h5><em>{{ comment.text }}</em></h5>
+                        <hr>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="box">
+                    <h3>There are no comments for this pet. </h3>
+                </div>
+            {% endif %}
+            <div class="box">
+                <form method="post" action="{% url 'comment pet' pet.id %}">
+                    {% csrf_token %}
+                    {{ comment_form }}
+                    <button class="btn btn-primary mt-2" type="submit">Add comment</button>
+                </form>
+            </div>
+        </div>
+
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
