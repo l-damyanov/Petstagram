@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from petstagram.common.forms import CommentForm
@@ -20,6 +21,10 @@ def pet_details(req, pk):
     pet = Pet.objects.get(pk=pk)
     pet.likes_count = pet.like_set.count()
 
+    is_owner = pet.user == req.user
+
+    is_liked_by_user = pet.like_set.filter(user_id=req.user.id).exists()
+
     context = {
         'pet': pet,
         'comment_form': CommentForm(
@@ -28,25 +33,35 @@ def pet_details(req, pk):
             }
         ),
         'comments': pet.comment_set.all(),
+        'is_owner': is_owner,
+        'is_liked': is_liked_by_user,
     }
 
     return render(req, 'pets/pet_detail.html', context)
 
 
 def like_pet(req, pk):
-    pet_to_like = Pet.objects.get(pk=pk)
-    like = Like(
-        pet=pet_to_like,
-    )
-    like.save()
-    return redirect('pet details', pet_to_like.id)
+    pet = Pet.objects.get(pk=pk)
+    like_object_by_user = pet.like_set.filter(user_id=req.user.id).first()
+    if like_object_by_user:
+        like_object_by_user.delete()
+    else:
+        like = Like(
+            pet=pet,
+            user=req.user,
+        )
+        like.save()
+    return redirect('pet details', pet.id)
 
 
+@login_required
 def create_pet(req):
     if req.method == 'POST':
         form = PetForm(req.POST, req.FILES)
         if form.is_valid():
-            form.save()
+            pet = form.save(commit=False)
+            pet.user = req.user
+            pet.save()
             return redirect('list pets')
     else:
         form = PetForm()
@@ -103,6 +118,8 @@ def delete_pet(req, pk):
 def comment_pet(req, pk):
     form = CommentForm(req.POST)
     if form.is_valid():
-        form.save()
+        comment = form.save(commit=False)
+        comment.user = req.user
+        comment.save()
 
     return redirect('pet details', pk)
